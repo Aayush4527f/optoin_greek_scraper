@@ -1,22 +1,20 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
 import SmartApiService from '../services/smartapi.service.js';
-// Import the model factory function instead of the static model
 import { getGreekModel } from '../models/greeks.model.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Updated the list to remove SENSEX
 const INDICES_TO_SCRAPE = {
     "NIFTY": { step: 50 },
     "BANKNIFTY": { step: 100 },
     "FINNIFTY": { step: 50 },
     "MIDCPNIFTY": { step: 25 },
 };
-const STRIKE_RANGE = 5; // Number of strikes above and below ATM
+const STRIKE_RANGE = 5;
 
-// Updated the delay to 2 seconds (2000 milliseconds)
+// Increased delay to 3 seconds for safety
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const serveFile = (file_address) => (req, res) => {
@@ -38,8 +36,9 @@ export const fetchAndLogGreeks = async (req, res) => {
 
             const ltp = await smartApiService.getLtp(indexName);
             
-            // Increased delay to 2 seconds
-            await delay(2000); 
+            // **FIX**: Added a delay AFTER the LTP call and BEFORE the greeks call
+            console.log("Waiting 3 seconds to avoid rate limit...");
+            await delay(3000); 
 
             if (ltp === null) {
                 console.warn(`Could not get LTP for ${indexName}. Skipping.`);
@@ -61,11 +60,10 @@ export const fetchAndLogGreeks = async (req, res) => {
 
                 if (filteredGreeks.length === 0) {
                     console.log(`No options found within the strike range for ${indexName}.`);
-                    await delay(2000);
+                    await delay(3000);
                     continue;
                 }
 
-                // Get the correct Mongoose Model for the current index
                 const GreekModel = getGreekModel(indexName);
 
                 const operations = filteredGreeks.map(greek => {
@@ -89,8 +87,8 @@ export const fetchAndLogGreeks = async (req, res) => {
                 console.log(`No greeks data returned for ${indexName} on ${expiryDate}.`);
             }
 
-            console.log("Waiting 2 seconds before next request...");
-            await delay(2000); // Respect API rate limit
+            console.log("Waiting 3 seconds before next request...");
+            await delay(3000);
         }
     } catch (error) {
         console.error("A critical error occurred during the fetch process:", error.message);
