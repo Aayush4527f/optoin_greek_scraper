@@ -1,15 +1,12 @@
-// importing libraries
 import express from 'express';
+import { serveFile, fetchAndLogGreeks } from '../controllers/main.controller.js';
 
-// importing controller functions
-import { serveFile } from '../controllers/main.controller.js';
-
-// initialize "router"
 const router = express.Router();
 
-// routes
-router.get('/',serveFile('index.html'));
+// Route to serve a simple frontend (optional)
+router.get('/', serveFile('index.html'));
 
+// Route to trigger the data fetching process
+router.get('/fetch', fetchAndLogGreeks);
 
-// export router
 export default router;
